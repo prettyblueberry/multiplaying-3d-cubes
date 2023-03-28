@@ -81,6 +81,23 @@ function init()
 	floor.position.y = -0.5;
 	floor.rotation.x = Math.PI / 2;
 	scene.add(floor);
+	
+	//different colors of cube's faces 
+	var materialArray = [];
+	var colorVector = Math.random() * 255;
+	console.log(colorVector);
+	var faceColor = new THREE.Color(colorVector);
+	materialArray.push(new THREE.MeshBasicMaterial( { color: faceColor}));
+	materialArray.push(new THREE.MeshBasicMaterial( { color: faceColor}));
+	materialArray.push(new THREE.MeshBasicMaterial( { color: faceColor}));
+	materialArray.push(new THREE.MeshBasicMaterial({ color: faceColor}));
+	materialArray.push(new THREE.MeshBasicMaterial( { color: faceColor}));
+	materialArray.push(new THREE.MeshBasicMaterial( { color: faceColor}));
+	var MovingCubeMat = new THREE.MeshFaceMaterial(materialArray);
+	var MovingCubeGeom = new THREE.CubeGeometry( 50, 50, 50, 1, 1, 1, materialArray );
+	MovingCube = new THREE.Mesh( MovingCubeGeom, MovingCubeMat );
+	MovingCube.position.set(0, 25.1, 0);
+	scene.add( MovingCube );	
 }
 
 
