@@ -114,8 +114,44 @@ function update()
 	var moveDistance = 200 * delta; // 200 pixels per second
 	var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
 	
+	// move forwards/backwards/left/right
+	if ( keyboard.pressed("W") )
+		MovingCube.translateZ( -moveDistance );
+	if ( keyboard.pressed("S") )
+		MovingCube.translateZ(  moveDistance );
+	if ( keyboard.pressed("Q") )
+		MovingCube.translateX( -moveDistance );
+	if ( keyboard.pressed("E") )
+		MovingCube.translateX(  moveDistance );	
+
+	// rotate left/right/up/down
+	var rotation_matrix = new THREE.Matrix4().identity();
+	if ( keyboard.pressed("A") )
+		MovingCube.rotateOnAxis( new THREE.Vector3(0,1,0), rotateAngle);
+	if ( keyboard.pressed("D") )
+		MovingCube.rotateOnAxis( new THREE.Vector3(0,1,0), -rotateAngle);
+	if ( keyboard.pressed("R") )
+		MovingCube.rotateOnAxis( new THREE.Vector3(1,0,0), rotateAngle);
+	if ( keyboard.pressed("F") )
+		MovingCube.rotateOnAxis( new THREE.Vector3(1,0,0), -rotateAngle);
 	
+	if ( keyboard.pressed("Z") )
+	{
+		MovingCube.position.set(0,25.1,0);
+		MovingCube.rotation.set(0,0,0);
+	}
 		
+	// global coordinates
+	if ( keyboard.pressed("left") )
+		MovingCube.position.x -= moveDistance;
+	if ( keyboard.pressed("right") )
+		MovingCube.position.x += moveDistance;
+	if ( keyboard.pressed("up") )
+		MovingCube.position.z -= moveDistance;
+	if ( keyboard.pressed("down") )
+		MovingCube.position.z += moveDistance;
+		
+	controls.update();
 	stats.update();
 }
 
