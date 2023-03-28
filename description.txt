@@ -1,4 +1,0 @@
-there is a plane and multi-cubes that means players.
-when one player  joins from another browser tab, then other players should see each other.
-when someone moves on the plane, all should see it too.
-when someone leaves, he should dissapear.

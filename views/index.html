@@ -1,27 +1,27 @@
 <!doctype html>
 <html lang="en">
 <head>
-	<title>Socket_io + Three.js Simple</title>
+	<title>Detect the movitaion _socket.io_three.js</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<link rel=stylesheet href="css/base.css"/>
+	<link rel=stylesheet href="/css/base.css"/>
 </head>
 <body>
 
-<script src="js/Three.js"></script>
-<script src="js/Detector.js"></script>
-<script src="js/Stats.js"></script>
-<script src="js/OrbitControls.js"></script>
-<script src="js/THREEx.KeyboardState.js"></script>
-<script src="js/THREEx.FullScreen.js"></script>
-<script src="js/THREEx.WindowResize.js"></script>
+<script src="/js/Three.js"></script>
+<script src="/js/Detector.js"></script>
+<script src="/js/Stats.js"></script>
+<script src="/js/OrbitControls.js"></script>
+<script src="/js/THREEx.KeyboardState.js"></script>
+<script src="/js/THREEx.FullScreen.js"></script>
+<script src="/js/THREEx.WindowResize.js"></script>
 
 <!-- jQuery code to display an information button and box when clicked. -->
-<script src="js/jquery-1.9.1.js"></script>
-<script src="js/jquery-ui.js"></script>
-<link rel=stylesheet href="css/jquery-ui.css" />
-<link rel=stylesheet href="css/info.css"/>
-<script src="js/info.js"></script>
+<script src="/js/jquery-1.9.1.js"></script>
+<script src="/js/jquery-ui.js"></script>
+<link rel=stylesheet href="/css/jquery-ui.css" />
+<link rel=stylesheet href="/css/info.css"/>
+<script src="/js/info.js"></script>
 <!-- ------------------------------------------------------------ -->
 
 <div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
@@ -59,7 +59,7 @@ function init()
 		renderer = new THREE.CanvasRenderer(); 
 	renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	container = document.getElementById( 'ThreeJS' );
-	container.appendChild( renderer.domElement );	
+	container.appendChild( renderer.domElement );
 	// EVENTS
 	THREEx.WindowResize(renderer, camera);
 	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
@@ -70,7 +70,6 @@ function init()
 	var light = new THREE.PointLight(0xffffff);
 	light.position.set(0,250,0);
 	scene.add(light);
-	
 	// FLOOR
 	var floorTexture = new THREE.ImageUtils.loadTexture( 'images/plane.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
@@ -81,8 +80,13 @@ function init()
 	floor.position.y = -0.5;
 	floor.rotation.x = Math.PI / 2;
 	scene.add(floor);
-	
-	//different colors of cube's faces 
+	// SKYBOX/FOG
+	var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
+	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
+	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+	// scene.add(skyBox);
+	scene.fog = new THREE.FogExp2( 0x9999ff, 0.00025 );
+
 	var materialArray = [];
 	var colorVector = Math.random() * 255;
 	console.log(colorVector);
@@ -98,6 +102,7 @@ function init()
 	MovingCube = new THREE.Mesh( MovingCubeGeom, MovingCubeMat );
 	MovingCube.position.set(0, 25.1, 0);
 	scene.add( MovingCube );	
+	
 }
 
 
@@ -113,7 +118,7 @@ function update()
 	var delta = clock.getDelta(); // seconds.
 	var moveDistance = 200 * delta; // 200 pixels per second
 	var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
-	
+
 	// move forwards/backwards/left/right
 	if ( keyboard.pressed("W") )
 		MovingCube.translateZ( -moveDistance );
@@ -152,7 +157,6 @@ function update()
 		MovingCube.position.z += moveDistance;
 		
 	controls.update();
-	stats.update();
 }
 
 function render() 
