@@ -1,5 +1,5 @@
-import app from './express.js'
-import socket from './socket.js'
+import app from './server/express.js'
+import socket from './server/socket.js'
 
 const server = app.listen(3000, (err) => {
   if (err) {

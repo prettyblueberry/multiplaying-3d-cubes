@@ -1,6 +1,7 @@
+import socketIo from "socket.io";
 
 export default (server) => {
-    const io = require('socket.io').listen(server)
+    const io = socketIo.listen(server)
     io.on('connection', function(socket){
         socket.emit('yourSid', socket.id);
         io.emit('createCube', socket.id);
