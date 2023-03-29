@@ -29,24 +29,6 @@
 <div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
 <script>
 
-// MAIN
-var socket = io();
-socket.on("connect", function(){
-	console.log('connected!');
-})
-
-socket.on('createCube', function(id){
-	CreateCube(id);
-})
-
-socket.on('remove', function(id){
-	console.log('remove', id);
-})
-
-socket.on('move', function(id, data){
-	console.log('move', id, data);
-})
-
 // standard global variables
 var container, scene, camera, renderer, controls, stats;
 var keyboard = new THREEx.KeyboardState();
@@ -54,6 +36,51 @@ var clock = new THREE.Clock();
 // custom global variables
 var cubeArray = [];
 var MovingCube;
+var mySid;
+var myColor;
+
+// MAIN
+var socket = io();
+socket.on("connect", function(){
+	console.log('connected!');
+})
+
+socket.on('yourSid', function(sid){
+	mySid = sid;
+	// console.log('My id:', mySid);
+})
+
+socket.on('createCube', function(id){
+	console.log('created cubes', id);
+	CreateCube(id);
+})
+
+socket.on('remove', function(id){
+	removeCube(id);
+})
+
+socket.on('move', function(id, buttonKey, moveDistance, rotateAngle){
+	console.log(moveDistance, rotateAngle);
+	console.log('move completely');
+	moveCube(id, buttonKey, moveDistance, rotateAngle);
+})
+
+socket.on('askPosition', function(sid){
+	cubeArray.forEach(cube => {
+		if(cube.id === mySid){
+			var position = cube.cube
+			console.log(position);
+			socket.emit("answerPosition", sid, position.position, myColor);
+		}
+	});
+})
+
+socket.on("answerPosition", function(oldSid, position, color){
+	var newCube = CreateCube(oldSid, color, position)
+	cubeArray.push(newCube);
+})
+
+
 
 
 
@@ -106,8 +133,6 @@ function init()
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
 	// scene.add(skyBox);
 	scene.fog = new THREE.FogExp2( 0x9999ff, 0.00025 );
-	CreateCube('self');
-
 }
 
 function animate(){
@@ -125,51 +150,53 @@ function update()
 	
 	// move forwards/backwards/left/right
 	if ( keyboard.pressed("W") ){
-		moveCube('self', 'W', moveDistance, rotateAngle);
+		socket.emit('move', 'W', moveDistance, rotateAngle);
 	}
 		
 	if ( keyboard.pressed("S") ){
-		socket.emit('move', 'S');
+		socket.emit('move', 'S', moveDistance, rotateAngle);
 	}
 	if ( keyboard.pressed("Q") )
-		cubeArray[0].cube.translateX( -moveDistance );
+		socket.emit('move', 'Q', moveDistance, rotateAngle);
 	if ( keyboard.pressed("E") )
-		cubeArray[0].cube.translateX(  moveDistance );	
+		socket.emit('move', 'E', moveDistance, rotateAngle);
 
 	// rotate left/right/up/down
 	var rotation_matrix = new THREE.Matrix4().identity();
 	if ( keyboard.pressed("A") )
-		cubeArray[0].cube.rotateOnAxis( new THREE.Vector3(0,1,0), rotateAngle);
+		socket.emit('move', 'A', moveDistance, rotateAngle);
 	if ( keyboard.pressed("D") )
-		cubeArray[0].cube.rotateOnAxis( new THREE.Vector3(0,1,0), -rotateAngle);
+		socket.emit('move', 'D', moveDistance, rotateAngle);
 	if ( keyboard.pressed("R") )
-		cubeArray[0].cube.rotateOnAxis( new THREE.Vector3(1,0,0), rotateAngle);
+		socket.emit('move', 'R', moveDistance, rotateAngle);
 	if ( keyboard.pressed("F") )
-		cubeArray[0].cube.rotateOnAxis( new THREE.Vector3(1,0,0), -rotateAngle);
+		socket.emit('move', 'F', moveDistance, rotateAngle);
 	
 	if ( keyboard.pressed("Z") )
 	{
-		cubeArray[0].cube.position.set(0,25.1,0);
-		cubeArray[0].cube.rotation.set(0,0,0);
+		socket.emit('move', 'Z', moveDistance, rotateAngle);
 	}
 		
 	// global coordinates
 	if ( keyboard.pressed("left") )
-		cubeArray[0].cube.position.x -= moveDistance;
+		socket.emit('move', 'left', moveDistance, rotateAngle);
 	if ( keyboard.pressed("right") )
-		cubeArray[0].cube.position.x += moveDistance;
+		socket.emit('move', 'right', moveDistance, rotateAngle);
 	if ( keyboard.pressed("up") )
-		cubeArray[0].cube.position.z -= moveDistance;
+		socket.emit('move', 'up', moveDistance, rotateAngle);
 	if ( keyboard.pressed("down") )
-		cubeArray[0].cube.position.z += moveDistance;
+		socket.emit('move', 'down', moveDistance, rotateAngle);
 		
 	controls.update();
 }
 
-function CreateCube (cubeId) {
+function CreateCube (cubeId, cubeColor, cubePosition) {
 	var materialArray = [];
-	var colorVector = Math.random() * 255;
-	console.log(colorVector);
+	var colorVector;
+	if(cubeColor) colorVector = cubeColor;
+	else colorVector = Math.random() * 255;
+	if(cubeId === mySid)
+		myColor = colorVector;
 	var faceColor = new THREE.Color(colorVector);
 	materialArray.push(new THREE.MeshBasicMaterial( { color: faceColor}));
 	materialArray.push(new THREE.MeshBasicMaterial( { color: faceColor}));
@@ -180,9 +207,13 @@ function CreateCube (cubeId) {
 	var MovingCubeMat = new THREE.MeshFaceMaterial(materialArray);
 	var MovingCubeGeom = new THREE.CubeGeometry( 50, 50, 50, 1, 1, 1, materialArray );
 	MovingCube = new THREE.Mesh( MovingCubeGeom, MovingCubeMat );
+	if(!cubePosition)
 	MovingCube.position.set(0, 25.1, 0);
+	else MovingCube.position.set(cubePosition.x, cubePosition.y, cubePosition.z);
 	cubeArray.push({id: cubeId, cube: MovingCube});
 	scene.add( MovingCube);
+	console.log(MovingCube);
+	return MovingCube;
 }
 
 function removeCube(cubeId){
