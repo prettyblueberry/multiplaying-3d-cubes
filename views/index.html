@@ -7,7 +7,7 @@
 	<link rel=stylesheet href="/css/base.css"/>
 </head>
 <body>
-
+<script src="/socket.io/socket.io.js"></script>
 <script src="/js/Three.js"></script>
 <script src="/js/Detector.js"></script>
 <script src="/js/Stats.js"></script>
@@ -23,19 +23,39 @@
 <link rel=stylesheet href="/css/info.css"/>
 <script src="/js/info.js"></script>
 <!-- ------------------------------------------------------------ -->
+<script>
 
+</script>
 <div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
 <script>
 
 // MAIN
+var socket = io();
+socket.on("connect", function(){
+	console.log('connected!');
+})
+
+socket.on('createCube', function(id){
+	CreateCube(id);
+})
+
+socket.on('remove', function(id){
+	console.log('remove', id);
+})
+
+socket.on('move', function(id, data){
+	console.log('move', id, data);
+})
 
 // standard global variables
 var container, scene, camera, renderer, controls, stats;
 var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
 // custom global variables
-
+var cubeArray = [];
 var MovingCube;
+
+
 
 init();
 animate();
@@ -86,7 +106,67 @@ function init()
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
 	// scene.add(skyBox);
 	scene.fog = new THREE.FogExp2( 0x9999ff, 0.00025 );
+	CreateCube('self');
 
+}
+
+function animate(){
+    requestAnimationFrame( animate );
+	render();		
+	update();
+}
+
+function update()
+{
+	var delta = clock.getDelta(); // seconds.
+	var moveDistance = 200 * delta; // 200 pixels per second
+	var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
+
+	
+	// move forwards/backwards/left/right
+	if ( keyboard.pressed("W") ){
+		moveCube('self', 'W', moveDistance, rotateAngle);
+	}
+		
+	if ( keyboard.pressed("S") ){
+		socket.emit('move', 'S');
+	}
+	if ( keyboard.pressed("Q") )
+		cubeArray[0].cube.translateX( -moveDistance );
+	if ( keyboard.pressed("E") )
+		cubeArray[0].cube.translateX(  moveDistance );	
+
+	// rotate left/right/up/down
+	var rotation_matrix = new THREE.Matrix4().identity();
+	if ( keyboard.pressed("A") )
+		cubeArray[0].cube.rotateOnAxis( new THREE.Vector3(0,1,0), rotateAngle);
+	if ( keyboard.pressed("D") )
+		cubeArray[0].cube.rotateOnAxis( new THREE.Vector3(0,1,0), -rotateAngle);
+	if ( keyboard.pressed("R") )
+		cubeArray[0].cube.rotateOnAxis( new THREE.Vector3(1,0,0), rotateAngle);
+	if ( keyboard.pressed("F") )
+		cubeArray[0].cube.rotateOnAxis( new THREE.Vector3(1,0,0), -rotateAngle);
+	
+	if ( keyboard.pressed("Z") )
+	{
+		cubeArray[0].cube.position.set(0,25.1,0);
+		cubeArray[0].cube.rotation.set(0,0,0);
+	}
+		
+	// global coordinates
+	if ( keyboard.pressed("left") )
+		cubeArray[0].cube.position.x -= moveDistance;
+	if ( keyboard.pressed("right") )
+		cubeArray[0].cube.position.x += moveDistance;
+	if ( keyboard.pressed("up") )
+		cubeArray[0].cube.position.z -= moveDistance;
+	if ( keyboard.pressed("down") )
+		cubeArray[0].cube.position.z += moveDistance;
+		
+	controls.update();
+}
+
+function CreateCube (cubeId) {
 	var materialArray = [];
 	var colorVector = Math.random() * 255;
 	console.log(colorVector);
@@ -101,62 +181,70 @@ function init()
 	var MovingCubeGeom = new THREE.CubeGeometry( 50, 50, 50, 1, 1, 1, materialArray );
 	MovingCube = new THREE.Mesh( MovingCubeGeom, MovingCubeMat );
 	MovingCube.position.set(0, 25.1, 0);
-	scene.add( MovingCube );	
+	cubeArray.push({id: cubeId, cube: MovingCube});
+	scene.add( MovingCube);
+}
+
+function removeCube(cubeId){
+	cubeArray.forEach(cube => {
+		if(cube.id === cubeId){
+			scene.remove(cube.cube);
+		}
+	});
 	
 }
 
-
-function animate() 
-{
-    requestAnimationFrame( animate );
-	render();		
-	update();
-}
-
-function update()
-{
-	var delta = clock.getDelta(); // seconds.
-	var moveDistance = 200 * delta; // 200 pixels per second
-	var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
-
-	// move forwards/backwards/left/right
-	if ( keyboard.pressed("W") )
-		MovingCube.translateZ( -moveDistance );
-	if ( keyboard.pressed("S") )
-		MovingCube.translateZ(  moveDistance );
-	if ( keyboard.pressed("Q") )
-		MovingCube.translateX( -moveDistance );
-	if ( keyboard.pressed("E") )
-		MovingCube.translateX(  moveDistance );	
-
-	// rotate left/right/up/down
-	var rotation_matrix = new THREE.Matrix4().identity();
-	if ( keyboard.pressed("A") )
-		MovingCube.rotateOnAxis( new THREE.Vector3(0,1,0), rotateAngle);
-	if ( keyboard.pressed("D") )
-		MovingCube.rotateOnAxis( new THREE.Vector3(0,1,0), -rotateAngle);
-	if ( keyboard.pressed("R") )
-		MovingCube.rotateOnAxis( new THREE.Vector3(1,0,0), rotateAngle);
-	if ( keyboard.pressed("F") )
-		MovingCube.rotateOnAxis( new THREE.Vector3(1,0,0), -rotateAngle);
-	
-	if ( keyboard.pressed("Z") )
-	{
-		MovingCube.position.set(0,25.1,0);
-		MovingCube.rotation.set(0,0,0);
-	}
-		
-	// global coordinates
-	if ( keyboard.pressed("left") )
-		MovingCube.position.x -= moveDistance;
-	if ( keyboard.pressed("right") )
-		MovingCube.position.x += moveDistance;
-	if ( keyboard.pressed("up") )
-		MovingCube.position.z -= moveDistance;
-	if ( keyboard.pressed("down") )
-		MovingCube.position.z += moveDistance;
-		
-	controls.update();
+function moveCube(cubeId, buttonKey, moveDistance, rotateAngle){
+	cubeArray.forEach(cube => {
+		if(cube.id === cubeId){
+			switch (buttonKey) {
+			case "W":
+				cube.cube.translateZ(  -moveDistance );
+				break;
+			case "S":
+				cube.cube.translateZ(  moveDistance );
+				break;
+			case "Q":
+				cube.cube.translateX( -moveDistance );
+				break;
+			case "E":
+				cube.cube.translateX(  moveDistance );
+				break;
+			case "A":
+				cube.cube.rotateOnAxis( new THREE.Vector3(0,1,0), rotateAngle);
+				break;
+			case "D":
+				cube.cube.rotateOnAxis( new THREE.Vector3(0,1,0), -rotateAngle);
+				break;
+			case "R":
+				cube.cube.rotateOnAxis( new THREE.Vector3(1,0,0), rotateAngle);
+				break;
+			case "F":
+				cube.cube.rotateOnAxis( new THREE.Vector3(1,0,0), -rotateAngle);
+				break;
+			case "Z":
+				{
+					cube.cube.position.set(0,25.1,0);
+					cube.cube.rotation.set(0,0,0);
+				}
+				break;
+			case "left":
+				cube.cube.position.x -= moveDistance;
+				break;
+			case "right":
+				cube.cube.position.x += moveDistance;
+				break;
+			case "up":
+				cube.cube.position.z -= moveDistance;
+				break;
+			case "down":
+				cube.cube.position.z += moveDistance;
+				break;
+			default:
+				break;
+			}
+		}
+	});
 }
 
 function render() 
