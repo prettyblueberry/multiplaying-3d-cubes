@@ -1,5 +1,5 @@
 {
-  "name": "multiplaying-cubes",
+  "name": "multiplaying-3d-cubes",
   "version": "1.0.0",
   "private": true,
   "description": "A practice of integrating three.js and socket.io",
