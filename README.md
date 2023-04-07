@@ -1,4 +1,4 @@
-# Multi-playing Cubes: Three.js - Socket.io
+# Multi-playing 3D Cubes: Three.js - Socket.io
 
 This project is a practice of integrating `three.js` and `socket.io` 
 
