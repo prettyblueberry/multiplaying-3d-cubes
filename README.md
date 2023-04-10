@@ -4,6 +4,8 @@ This project is a practice of integrating `three.js` and `socket.io`
 
 Each cube is a player from each browser tab. Cubes are moved by arrow keys. All cubes are moved on a plain. 
 
+![screenshot.png](screenshot.png)
+
 ## How to Run
 ### Install Dependencies
 
